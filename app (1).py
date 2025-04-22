@@ -12,7 +12,7 @@ if uploaded_file:
 else:
     df = pd.read_csv("Spotify.csv", delimiter=";")
 
-# Clean column names
+# Clean column names (strip all spaces)
 df.columns = df.columns.str.strip()
 
 # Optional filters
@@ -33,14 +33,14 @@ song_titles = filtered_df["title"].tolist()
 selected_song = st.selectbox("Select a song you like", options=song_titles)
 
 if st.button("Recommend"):
-    features = ['bpm', 'energy', 'danceability ', 'dB', 'liveness', 'valence',
-                'duration', 'acousticness', 'speechiness ', 'popularity']
+    # Fix: Cleaned feature names (no trailing spaces)
+    features = ['bpm', 'energy', 'danceability', 'dB', 'liveness', 'valence',
+                'duration', 'acousticness', 'speechiness', 'popularity']
 
     scaler = StandardScaler()
     st.write("Features you're trying to use:", features)
     st.write("Actual columns in the dataset:", filtered_df.columns.tolist())
 
-    # Make sure feature names match column names exactly
     missing_features = [f for f in features if f not in filtered_df.columns]
     if missing_features:
         st.error(f"Missing features in dataset: {missing_features}")
@@ -55,4 +55,3 @@ if st.button("Recommend"):
 
         st.subheader("🎧 Top 10 Recommended Songs")
         st.dataframe(recommended[['title', 'artist', 'top genre', 'year', 'popularity']].head(10))
-

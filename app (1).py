@@ -12,7 +12,7 @@ if uploaded_file:
 else:
     df = pd.read_csv("Spotify.csv", delimiter=";")
 
-# Clean column names (strip all spaces)
+# Clean column names
 df.columns = df.columns.str.strip()
 
 # Optional filters
@@ -33,25 +33,30 @@ song_titles = filtered_df["title"].tolist()
 selected_song = st.selectbox("Select a song you like", options=song_titles)
 
 if st.button("Recommend"):
-    # Fix: Cleaned feature names (no trailing spaces)
+    # Clean column names again to remove trailing spaces
+    filtered_df.columns = filtered_df.columns.str.strip()
+
     features = ['bpm', 'energy', 'danceability', 'dB', 'liveness', 'valence',
                 'duration', 'acousticness', 'speechiness', 'popularity']
 
-    scaler = StandardScaler()
-    st.write("Features you're trying to use:", features)
-    st.write("Actual columns in the dataset:", filtered_df.columns.tolist())
-
+    # Check if all features exist
     missing_features = [f for f in features if f not in filtered_df.columns]
     if missing_features:
         st.error(f"Missing features in dataset: {missing_features}")
     else:
+        scaler = StandardScaler()
         scaled_features = scaler.fit_transform(filtered_df[features])
-        song_idx = filtered_df[filtered_df['title'] == selected_song].index[0]
-        similarity_scores = cosine_similarity([scaled_features[song_idx]], scaled_features)[0]
 
-        filtered_df['similarity'] = similarity_scores
-        recommended = filtered_df.sort_values(by='similarity', ascending=False)
-        recommended = recommended[recommended['title'] != selected_song]
+        song_match = filtered_df[filtered_df['title'] == selected_song]
+        if song_match.empty:
+            st.error("❌ Selected song not found in the filtered dataset.")
+        else:
+            song_idx = song_match.index[0]
+            similarity_scores = cosine_similarity([scaled_features[song_idx]], scaled_features)[0]
 
-        st.subheader("🎧 Top 10 Recommended Songs")
-        st.dataframe(recommended[['title', 'artist', 'top genre', 'year', 'popularity']].head(10))
+            filtered_df['similarity'] = similarity_scores
+            recommended = filtered_df.sort_values(by='similarity', ascending=False)
+            recommended = recommended[recommended['title'] != selected_song]
+
+            st.subheader("🎧 Top 10 Recommended Songs")
+            st.dataframe(recommended[['title', 'artist', 'top genre', 'year', 'popularity']].head(10))

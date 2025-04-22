@@ -1,5 +1,3 @@
-# 👉 Paste your entire Streamlit app code between the triple quotes below
-
 import streamlit as st
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
@@ -12,7 +10,7 @@ uploaded_file = st.file_uploader("Upload your Spotify dataset (CSV)", type=["csv
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
 else:
-    df = pd.read_csv("Spotify.csv",delimiter=";")
+    df = pd.read_csv("Spotify.csv", delimiter=";")
 
 # Clean column names
 df.columns = df.columns.str.strip()
@@ -40,14 +38,21 @@ if st.button("Recommend"):
 
     scaler = StandardScaler()
     st.write("Features you're trying to use:", features)
-st.write("Actual columns in the dataset:", filtered_df.columns.tolist())
-scaled_features = scaler.fit_transform(filtered_df[features])
-song_idx = filtered_df[filtered_df['title'] == selected_song].index[0]
-similarity_scores = cosine_similarity([scaled_features[song_idx]], scaled_features)[0]
+    st.write("Actual columns in the dataset:", filtered_df.columns.tolist())
 
-    filtered_df['similarity'] = similarity_scores
-    recommended = filtered_df.sort_values(by='similarity', ascending=False)
-    recommended = recommended[recommended['title'] != selected_song]
+    # Make sure feature names match column names exactly
+    missing_features = [f for f in features if f not in filtered_df.columns]
+    if missing_features:
+        st.error(f"Missing features in dataset: {missing_features}")
+    else:
+        scaled_features = scaler.fit_transform(filtered_df[features])
+        song_idx = filtered_df[filtered_df['title'] == selected_song].index[0]
+        similarity_scores = cosine_similarity([scaled_features[song_idx]], scaled_features)[0]
 
-    st.subheader("🎧 Top 10 Recommended Songs")
-    st.dataframe(recommended[['title', 'artist', 'top genre', 'year', 'popularity']].head(10))
+        filtered_df['similarity'] = similarity_scores
+        recommended = filtered_df.sort_values(by='similarity', ascending=False)
+        recommended = recommended[recommended['title'] != selected_song]
+
+        st.subheader("🎧 Top 10 Recommended Songs")
+        st.dataframe(recommended[['title', 'artist', 'top genre', 'year', 'popularity']].head(10))
+

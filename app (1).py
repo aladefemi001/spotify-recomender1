@@ -39,7 +39,9 @@ if st.button("Recommend"):
                 'duration', 'acousticness', 'speechiness ', 'popularity']
 
     scaler = StandardScaler()
-    scaled_features = scaler.fit_transform(filtered_df[features])
+    st.write("Features you're trying to use:", features)
+st.write("Actual columns in the dataset:", filtered_df.columns.tolist())
+scaled_features = scaler.fit_transform(filtered_df[features])
 
     song_idx = filtered_df[filtered_df['title'] == selected_song].index[0]
     similarity_scores = cosine_similarity([scaled_features[song_idx]], scaled_features)[0]

@@ -12,7 +12,7 @@ uploaded_file = st.file_uploader("Upload your Spotify dataset (CSV)", type=["csv
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
 else:
-    df = pd.read_csv("/content/Best Songs on Spotify from 2000-2023.csv",delimiter=";")
+    df = pd.read_csv("Spotify.csv",delimiter=";")
 
 # Clean column names
 df.columns = df.columns.str.strip()

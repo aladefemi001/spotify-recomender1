@@ -47,16 +47,24 @@ if st.button("Recommend"):
         scaler = StandardScaler()
         scaled_features = scaler.fit_transform(filtered_df[features])
 
+        # Safely get song index
         song_match = filtered_df[filtered_df['title'] == selected_song]
         if song_match.empty:
             st.error("❌ Selected song not found in the filtered dataset.")
         else:
             song_idx = song_match.index[0]
-            similarity_scores = cosine_similarity([scaled_features[song_idx]], scaled_features)[0]
 
-            filtered_df['similarity'] = similarity_scores
-            recommended = filtered_df.sort_values(by='similarity', ascending=False)
-            recommended = recommended[recommended['title'] != selected_song]
+            try:
+                similarity_scores = cosine_similarity(
+                    [scaled_features[list(filtered_df.index).index(song_idx)]],
+                    scaled_features
+                )[0]
 
-            st.subheader("🎧 Top 10 Recommended Songs")
-            st.dataframe(recommended[['title', 'artist', 'top genre', 'year', 'popularity']].head(10))
+                filtered_df['similarity'] = similarity_scores
+                recommended = filtered_df.sort_values(by='similarity', ascending=False)
+                recommended = recommended[recommended['title'] != selected_song]
+
+                st.subheader("🎧 Top 10 Recommended Songs")
+                st.dataframe(recommended[['title', 'artist', 'top genre', 'year', 'popularity']].head(10))
+            except Exception as e:
+                st.error(f"An unexpected error occurred during similarity calculation: {e}")
